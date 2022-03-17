@@ -31,19 +31,19 @@ class UnboundedCustomScrollView extends CustomScrollView {
   })  : _shrinkWrap = shrinkWrap,
         _anchor = anchor,
         super(
-          key: key,
-          scrollDirection: scrollDirection,
-          reverse: reverse,
-          controller: controller,
-          primary: primary,
-          physics: physics,
-          shrinkWrap: false,
-          center: center,
-          cacheExtent: cacheExtent,
-          semanticChildCount: semanticChildCount,
-          dragStartBehavior: dragStartBehavior,
-          slivers: slivers,
-        );
+        key: key,
+        scrollDirection: scrollDirection,
+        reverse: reverse,
+        controller: controller,
+        primary: primary,
+        physics: physics,
+        shrinkWrap: false,
+        center: center,
+        cacheExtent: cacheExtent,
+        semanticChildCount: semanticChildCount,
+        dragStartBehavior: dragStartBehavior,
+        slivers: slivers,
+      );
 
   // [CustomScrollView] enforces constraints on [CustomScrollView.anchor], so
   // we need our own version.
@@ -56,11 +56,11 @@ class UnboundedCustomScrollView extends CustomScrollView {
   @override
   @protected
   Widget buildViewport(
-    BuildContext context,
-    ViewportOffset offset,
-    AxisDirection axisDirection,
-    List<Widget> slivers,
-  ) {
+      BuildContext context,
+      ViewportOffset offset,
+      AxisDirection axisDirection,
+      List<Widget> slivers,
+      ) {
     if (_shrinkWrap) {
       return CustomShrinkWrappingViewport(
         axisDirection: axisDirection,

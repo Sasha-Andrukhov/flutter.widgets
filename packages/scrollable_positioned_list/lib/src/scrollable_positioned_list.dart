@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -407,9 +408,9 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   }
 
   double _cacheExtent(BoxConstraints constraints) => max(
-        constraints.maxHeight * _screenScrollCount,
-        widget.minCacheExtent ?? 0,
-      );
+    constraints.maxHeight * _screenScrollCount,
+    widget.minCacheExtent ?? 0,
+  );
 
   void _jumpTo({required int index, required double alignment}) {
     _stopScroll(canceled: true);
@@ -435,7 +436,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     }
     if (_isTransitioning) {
       _stopScroll(canceled: true);
-      SchedulerBinding.instance.addPostFrameCallback((_) {
+      SchedulerBinding.instance!.addPostFrameCallback((_) {
         _startScroll(
           index: index,
           alignment: alignment,
@@ -482,14 +483,14 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
       final startCompleter = Completer<void>();
       final endCompleter = Completer<void>();
       startAnimationCallback = () {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
+        SchedulerBinding.instance!.addPostFrameCallback((_) {
           startAnimationCallback = () {};
 
           opacity.parent = _opacityAnimation(opacityAnimationWeights).animate(
               AnimationController(vsync: this, duration: duration)..forward());
           secondary.scrollController.jumpTo(-direction *
               (_screenScrollCount *
-                      primary.scrollController.position.viewportDimension -
+                  primary.scrollController.position.viewportDimension -
                   alignment *
                       secondary.scrollController.position.viewportDimension));
 
@@ -559,14 +560,14 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   void _updatePositions() {
     final itemPositions = primary.itemPositionsNotifier.itemPositions.value
         .where((ItemPosition position) =>
-            position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
+    position.itemLeadingEdge < 1 && position.itemTrailingEdge > 0);
     if (itemPositions.isNotEmpty) {
       PageStorage.of(context)!.writeState(
           context,
           itemPositions.reduce((value, element) =>
-              value.itemLeadingEdge < element.itemLeadingEdge
-                  ? value
-                  : element));
+          value.itemLeadingEdge < element.itemLeadingEdge
+              ? value
+              : element));
     }
     widget.itemPositionsNotifier?.itemPositions.value = itemPositions;
   }
