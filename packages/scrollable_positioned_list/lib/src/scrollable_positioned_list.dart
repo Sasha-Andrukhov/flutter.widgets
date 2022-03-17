@@ -52,6 +52,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
+    this.scrollController
   })  : assert(itemCount != null),
         assert(itemBuilder != null),
         itemPositionsNotifier = itemPositionsListener as ItemPositionsNotifier?,
@@ -79,6 +80,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
+    this.scrollController
   })  : assert(itemCount != null),
         assert(itemBuilder != null),
         assert(separatorBuilder != null),
@@ -172,8 +174,10 @@ class ScrollablePositionedList extends StatefulWidget {
   /// cache extent.
   final double? minCacheExtent;
 
+  final ScrollController? scrollController;
+
   @override
-  State<StatefulWidget> createState() => _ScrollablePositionedListState();
+  State<StatefulWidget> createState() => _ScrollablePositionedListState(scrollController: scrollController);
 }
 
 /// Controller to jump or scroll to a particular position in a
@@ -258,8 +262,13 @@ class ItemScrollController {
 
 class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     with TickerProviderStateMixin {
+
+  _ScrollablePositionedListState({ScrollController? scrollController})
+      :primary = _ListDisplayDetails(const ValueKey('Ping'),scrollController: scrollController);
+
   /// Details for the primary (active) [ListView].
-  var primary = _ListDisplayDetails(const ValueKey('Ping'));
+  var primary;
+  // var primary = _ListDisplayDetails(const ValueKey('Ping'));
 
   /// Details for the secondary (transitional) [ListView] that is temporarily
   /// shown when scrolling a long distance.
@@ -574,10 +583,12 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
 }
 
 class _ListDisplayDetails {
-  _ListDisplayDetails(this.key);
+  _ListDisplayDetails(this.key,{ScrollController? scrollController})
+      :this.scrollController = scrollController??ScrollController(keepScrollOffset: false);
 
   final itemPositionsNotifier = ItemPositionsNotifier();
-  final scrollController = ScrollController(keepScrollOffset: false);
+  final scrollController;
+  // final scrollController = ScrollController(keepScrollOffset: false);
 
   /// The index of the item to scroll to.
   int target = 0;
