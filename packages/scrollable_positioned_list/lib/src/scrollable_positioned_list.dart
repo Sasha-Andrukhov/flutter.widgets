@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -52,7 +51,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
-    this.scrollController
+    this.scrollControllerEventListener
   })  : assert(itemCount != null),
         assert(itemBuilder != null),
         itemPositionsNotifier = itemPositionsListener as ItemPositionsNotifier?,
@@ -80,7 +79,7 @@ class ScrollablePositionedList extends StatefulWidget {
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.minCacheExtent,
-    this.scrollController
+    this.scrollControllerEventListener
   })  : assert(itemCount != null),
         assert(itemBuilder != null),
         assert(separatorBuilder != null),
@@ -174,10 +173,15 @@ class ScrollablePositionedList extends StatefulWidget {
   /// cache extent.
   final double? minCacheExtent;
 
-  final ScrollController? scrollController;
+  /// Callback which fires when scrollController position changes
+  final void Function(
+      double offset,
+      ScrollPosition position,
+      )? scrollControllerEventListener;
+
 
   @override
-  State<StatefulWidget> createState() => _ScrollablePositionedListState(scrollController: scrollController);
+  State<StatefulWidget> createState() => _ScrollablePositionedListState();
 }
 
 /// Controller to jump or scroll to a particular position in a
@@ -263,12 +267,10 @@ class ItemScrollController {
 class _ScrollablePositionedListState extends State<ScrollablePositionedList>
     with TickerProviderStateMixin {
 
-  _ScrollablePositionedListState({ScrollController? scrollController})
-      :primary = _ListDisplayDetails(const ValueKey('Ping'),scrollController: scrollController);
+  _ScrollablePositionedListState({ScrollController? scrollController});
 
   /// Details for the primary (active) [ListView].
-  var primary;
-  // var primary = _ListDisplayDetails(const ValueKey('Ping'));
+  var primary = _ListDisplayDetails(const ValueKey('Ping'));
 
   /// Details for the secondary (transitional) [ListView] that is temporarily
   /// shown when scrolling a long distance.
@@ -344,6 +346,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        debugPrint('_isTransitioning $_isTransitioning');
         final cacheExtent = _cacheExtent(constraints);
         return GestureDetector(
           onPanDown: (_) => _stopScroll(canceled: true),
@@ -375,6 +378,7 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
                       padding: widget.padding,
                       addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
                       addRepaintBoundaries: widget.addRepaintBoundaries,
+                      scrollControllerEventListener: widget.scrollControllerEventListener,
                     ),
                   ),
                 ),
@@ -583,12 +587,10 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
 }
 
 class _ListDisplayDetails {
-  _ListDisplayDetails(this.key,{ScrollController? scrollController})
-      :this.scrollController = scrollController??ScrollController(keepScrollOffset: false);
+  _ListDisplayDetails(this.key);
 
   final itemPositionsNotifier = ItemPositionsNotifier();
-  final scrollController;
-  // final scrollController = ScrollController(keepScrollOffset: false);
+  final scrollController = ScrollController(keepScrollOffset: false);
 
   /// The index of the item to scroll to.
   int target = 0;

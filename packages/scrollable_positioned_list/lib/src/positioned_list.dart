@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:scrollable_positioned_list/src/improved_scrolling_wrapper.dart';
 
 import 'element_registry.dart';
 import 'item_positions_listener.dart';
@@ -45,6 +46,7 @@ class PositionedList extends StatefulWidget {
     this.addSemanticIndexes = true,
     this.addRepaintBoundaries = true,
     this.addAutomaticKeepAlives = true,
+    this.scrollControllerEventListener,
   })  : assert(itemCount != null),
         assert(itemBuilder != null),
         assert((positionedIndex == 0) || (positionedIndex < itemCount)),
@@ -133,6 +135,14 @@ class PositionedList extends StatefulWidget {
   /// See [SliverChildBuilderDelegate.addAutomaticKeepAlives].
   final bool addAutomaticKeepAlives;
 
+
+  /// Callback which fires when scrollController position changes
+  final void Function(
+      double offset,
+      ScrollPosition position,
+      )? scrollControllerEventListener;
+
+
   @override
   State<StatefulWidget> createState() => _PositionedListState();
 }
@@ -166,75 +176,80 @@ class _PositionedListState extends State<PositionedList> {
   }
 
   @override
-  Widget build(BuildContext context) => RegistryWidget(
-    elementNotifier: registeredElements,
-    child: UnboundedCustomScrollView(
-      anchor: widget.alignment,
-      center: _centerKey,
-      controller: scrollController,
-      scrollDirection: widget.scrollDirection,
-      reverse: widget.reverse,
-      cacheExtent: widget.cacheExtent,
-      physics: widget.physics,
-      shrinkWrap: widget.shrinkWrap,
-      semanticChildCount: widget.semanticChildCount ?? widget.itemCount,
-      slivers: <Widget>[
-        if (widget.positionedIndex > 0)
-          SliverPadding(
-            padding: _leadingSliverPadding,
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) => widget.separatorBuilder == null
-                    ? _buildItem(widget.positionedIndex - (index + 1))
-                    : _buildSeparatedListElement(
-                    2 * widget.positionedIndex - (index + 1)),
-                childCount: widget.separatorBuilder == null
-                    ? widget.positionedIndex
-                    : 2 * widget.positionedIndex,
-                addSemanticIndexes: false,
-                addRepaintBoundaries: widget.addRepaintBoundaries,
-                addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+  Widget build(BuildContext context){
+    return RegistryWidget(
+      elementNotifier: registeredElements,
+      child: ImprovedScrollingWrapper.getWidget(
+        scrollController: scrollController,
+        child: UnboundedCustomScrollView(
+          anchor: widget.alignment,
+          center: _centerKey,
+          controller: scrollController,
+          scrollDirection: widget.scrollDirection,
+          reverse: widget.reverse,
+          cacheExtent: widget.cacheExtent,
+          physics: widget.physics,
+          shrinkWrap: widget.shrinkWrap,
+          semanticChildCount: widget.semanticChildCount ?? widget.itemCount,
+          slivers: <Widget>[
+            if (widget.positionedIndex > 0)
+              SliverPadding(
+                padding: _leadingSliverPadding,
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (context, index) => widget.separatorBuilder == null
+                        ? _buildItem(widget.positionedIndex - (index + 1))
+                        : _buildSeparatedListElement(
+                        2 * widget.positionedIndex - (index + 1)),
+                    childCount: widget.separatorBuilder == null
+                        ? widget.positionedIndex
+                        : 2 * widget.positionedIndex,
+                    addSemanticIndexes: false,
+                    addRepaintBoundaries: widget.addRepaintBoundaries,
+                    addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                  ),
+                ),
+              ),
+            SliverPadding(
+              key: _centerKey,
+              padding: _centerSliverPadding,
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) => widget.separatorBuilder == null
+                      ? _buildItem(index + widget.positionedIndex)
+                      : _buildSeparatedListElement(
+                      index + 2 * widget.positionedIndex),
+                  childCount: widget.itemCount != 0 ? 1 : 0,
+                  addSemanticIndexes: false,
+                  addRepaintBoundaries: widget.addRepaintBoundaries,
+                  addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                ),
               ),
             ),
-          ),
-        SliverPadding(
-          key: _centerKey,
-          padding: _centerSliverPadding,
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) => widget.separatorBuilder == null
-                  ? _buildItem(index + widget.positionedIndex)
-                  : _buildSeparatedListElement(
-                  index + 2 * widget.positionedIndex),
-              childCount: widget.itemCount != 0 ? 1 : 0,
-              addSemanticIndexes: false,
-              addRepaintBoundaries: widget.addRepaintBoundaries,
-              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-            ),
-          ),
+            if (widget.positionedIndex >= 0 &&
+                widget.positionedIndex < widget.itemCount - 1)
+              SliverPadding(
+                padding: _trailingSliverPadding,
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (context, index) => widget.separatorBuilder == null
+                        ? _buildItem(index + widget.positionedIndex + 1)
+                        : _buildSeparatedListElement(
+                        index + 2 * widget.positionedIndex + 1),
+                    childCount: widget.separatorBuilder == null
+                        ? widget.itemCount - widget.positionedIndex - 1
+                        : 2 * (widget.itemCount - widget.positionedIndex - 1),
+                    addSemanticIndexes: false,
+                    addRepaintBoundaries: widget.addRepaintBoundaries,
+                    addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                  ),
+                ),
+              ),
+          ],
         ),
-        if (widget.positionedIndex >= 0 &&
-            widget.positionedIndex < widget.itemCount - 1)
-          SliverPadding(
-            padding: _trailingSliverPadding,
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) => widget.separatorBuilder == null
-                    ? _buildItem(index + widget.positionedIndex + 1)
-                    : _buildSeparatedListElement(
-                    index + 2 * widget.positionedIndex + 1),
-                childCount: widget.separatorBuilder == null
-                    ? widget.itemCount - widget.positionedIndex - 1
-                    : 2 * (widget.itemCount - widget.positionedIndex - 1),
-                addSemanticIndexes: false,
-                addRepaintBoundaries: widget.addRepaintBoundaries,
-                addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-              ),
-            ),
-          ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   Widget _buildSeparatedListElement(int index) {
     if (index.isEven) {
@@ -360,6 +375,9 @@ class _PositionedListState extends State<PositionedList> {
           }
         }
         widget.itemPositionsNotifier?.itemPositions.value = positions;
+        if(scrollController.hasClients){
+          widget.scrollControllerEventListener!(scrollController.offset,scrollController.position);
+        }
         updateScheduled = false;
       });
     }
