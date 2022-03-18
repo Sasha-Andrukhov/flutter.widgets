@@ -375,7 +375,7 @@ class _PositionedListState extends State<PositionedList> {
           }
         }
         widget.itemPositionsNotifier?.itemPositions.value = positions;
-        if(scrollController.hasClients){
+        if(scrollController.hasClients&&widget.scrollControllerEventListener!=null){
           widget.scrollControllerEventListener!(scrollController.offset,scrollController.position);
         }
         updateScheduled = false;
