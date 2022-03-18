@@ -26,20 +26,9 @@ class ImprovedScrollingWrapper {
     return ImprovedScrolling(
       checkNegativeOffset: true,
       scrollController: scrollController,
-      onScroll: (scrollOffset) => debugPrint(
-        'Scroll offset: $scrollOffset',
-      ),
-      onMMBScrollStateChanged: (scrolling) => debugPrint(
-        'Is scrolling: $scrolling',
-      ),
-      onMMBScrollCursorPositionUpdate: (localCursorOffset, scrollActivity) =>
-          debugPrint(
-            'Cursor position: $localCursorOffset\n'
-                'Scroll activity: $scrollActivity',
-          ),
       enableMMBScrolling: true,
       enableKeyboardScrolling: true,
-      enableCustomMouseWheelScrolling: true,
+      enableCustomMouseWheelScrolling: false,
       mmbScrollConfig: const MMBScrollConfig(
         customScrollCursor:  DefaultCustomScrollCursor(),
       ),
